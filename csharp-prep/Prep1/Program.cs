@@ -14,7 +14,7 @@ class Program
     Resume resume = new Resume ("Aaron Hash");
 
     resume.job.Add(firstjob);
-    resume.job.Add(secondjob);
+    resume.job.Add(secondjob);e
 
     resume.display_resume ();
     }
