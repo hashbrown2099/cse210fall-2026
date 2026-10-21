@@ -16,7 +16,7 @@ class Program
     resume.job.Add(firstjob);
     resume.job.Add(secondjob);e
 
-    resume.display_resume ();
+    resume.display_resume ();ll
     }
 }
 
