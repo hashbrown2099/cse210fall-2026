@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 
 
-// the menu and completion messages also use a spartan commander theme.
+
 
 class Program
 {
