@@ -10,11 +10,22 @@ class Program
     static void Main(string[] args)
     {
         string choice = "";
+        int breathingCount = 0;
+        int reflectionCount= 0;
+        int listingCount = 0;
 
         while(choice != "4")
         {
             Console.WriteLine();
               Console.WriteLine("relax big bro");
+
+            Console.WriteLine("completed this run:");
+            Console.WriteLine("breathing: " + breathingCount);
+            Console.WriteLine("reflection: " + reflectionCount);
+            Console.WriteLine("listing: " + listingCount);
+            Console.WriteLine("total: " + (breathingCount + reflectionCount + listingCount));
+            Console.WriteLine();
+
             Console.WriteLine("stand ready, spartan. choose your activity.");
             Console.WriteLine("1. breathing activity");
             Console.WriteLine("2. reflection activity");
@@ -27,16 +38,19 @@ class Program
             {
                 BreathingActivity breathing =new BreathingActivity();
                 breathing.Run();
+                breathingCount++;
             }
           else if(choice == "2")
             {
                 ReflectionActivity reflection = new ReflectionActivity();
                 reflection.Run();
+                reflectionCount++;
             }
             else if (choice == "3")
             {
                 ListingActivity listing = new ListingActivity();
                 listing.Run();
+                listingCount++;
             }
             else if (choice != "4")
             {
