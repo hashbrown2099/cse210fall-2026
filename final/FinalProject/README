@@ -1,0 +1,27 @@
+ // THIS IS A  banking program. Users can create an account, log in, and manage savings and checking balances.
+  Choose Create Account from the main menu.
+ Create a unique username and a PIN containing exactly four digits.
+ Answer the three security questions.
+ Choose Log In and enter your username and PIN.
+Use the account menu to view balances, deposit money, withdraw money, or log out.
+ For a transaction, choose 1 for Savings or 2 for Checking, then enter the amount.
+
+notes
+
+- Accounts and balances reset when the program closes.
+- After three incorrect PIN attempts, the program asks the security questions.
+- Usernames and security answers ignore capitalization.
+- Deposits and withdrawals must be positive numbers.
+- Withdrawals cannot exceed the account balance.
+- Enter amounts as numbers, such as 25.50, without a dollar sign.
+
+classes used
+
+- MainAccount: shared account information and behaviors.
+- SavingsAccount: represents a savings account.
+- CheckingsAccount: represents a checking account and overrides Withdraw.
+- AccountHolder: stores a user's information and accounts.
+- Bank: stores and finds account holders.
+- LoginManager: handles PIN attempts and the security-question fallback.
+- TransactionManager: handles account selection and transactions.
+- SercuritySoftware: starts the program and runs the menus.
