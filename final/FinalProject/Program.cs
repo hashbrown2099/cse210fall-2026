@@ -1,40 +1,57 @@
-
-//aar0n james 
-
+// MainAccount.cs
 abstract class MainAccount
 {
-    public string AccountType { get; protected set; }// public will allow for the  
-    public double Balance { get; protected set; }// double allows for decimal values to to be held  balance can be accessed out side of its class with public 
+    private string _accountType;
+    private decimal _balance;
+
+    public string AccountType
+    {
+        get { return _accountType; }
+    }
+
+    public decimal Balance
+    {
+        get { return _balance; }
+    }
 
     public MainAccount(string accountType)
     {
-        AccountType = accountType;
-        Balance = 0.0;// setting the blance to 0
+        _accountType = accountType;
+        _balance = 0m;
     }
 
-    public void Deposit(double amount)
+    public void Deposit(decimal amount)
     {
-        if (amount > 0)
-        {
-            Balance += amount;
-            Console.WriteLine($"{amount}$ has been deposited into your account. Your updated balance is now now {Balance}$");
-        }
-        else
+        if (amount <= 0)
         {
             Console.WriteLine("The amount deposited must be positive");
         }
-    }
-
-    public virtual void Withdraw(double amount)
-    {
-        if (amount > 0 && amount <= Balance)
+        else if (amount > decimal.MaxValue - _balance)
         {
-            Balance -= amount;
-            Console.WriteLine($"{amount}$ has been withdrawn from your account, your balance is now : {Balance}$");
+            Console.WriteLine("That amount is too large.");
         }
         else
         {
+            _balance += amount;
+            Console.WriteLine($"{amount}$ has been deposited into your account. Your balance is now {Balance}$");
+        }
+    }
+
+
+    public virtual void Withdraw(decimal amount)
+    {
+        if (amount <= 0)
+        {
+            Console.WriteLine("The amount withdrawn must be positive");
+        }
+        else if (amount > _balance)
+        {
             Console.WriteLine("Insufficient FUNDS.... YOU ARE BROKE");
+        }
+        else
+        {
+            _balance -= amount;
+            Console.WriteLine($"{amount}$ has been withdrawn from your account, your balance is now: {Balance}$");
         }
     }
 
@@ -44,158 +61,163 @@ abstract class MainAccount
     }
 }
 
+// SavingsAccount
 class SavingsAccount : MainAccount
 {
-    public SavingsAccount() : base("Savings") { }
-}
-
-class CheckingsAccount : MainAccount
-{
-    public CheckingsAccount() : base("checking") { }
-
-    public override void Withdraw(double amount)
+    public SavingsAccount() : base("Savings")
     {
-        double overdraftLimit = 0.0;
-        if (amount <= Balance + overdraftLimit)
-        {
-            Balance -= amount;
-            Console.WriteLine($"{amount}$ Has been Withdrawn");
-        }
-        else
-        {
-            Console.WriteLine($" You do not have an overdraft limit. ");
-        }
     }
 }
 
-//now im going to make the parent class for the accounts and two types of accounts 
+// CheckingsAccount
+class CheckingsAccount : MainAccount
+{
+    public CheckingsAccount() : base("Checking")
+    {
+    }
 
+    public override void Withdraw(decimal amount)
+    {
+        if (amount > Balance)
+        {
+            Console.WriteLine("You do not have an overdraft limit.");
+            return;
+        }
+
+        // The base method checks for a positive amount and updates the balance.
+        base.Withdraw(amount);
+    }
+}
+
+// AccountHolder
 class AccountHolder
 {
-    public string Username { get; set; } // user name for the account 
-    public string PIN { get; set; } // the user can set the PIN
-    public Dictionary<String, String> SecurityQuestions { get; set; }// This is the security questions with the answers 
-    public List<MainAccount> Accounts { get; set; } 
+    private string _username;
+    private string _pin;
+    private Dictionary<string, string> _securityQuestions;
+    private List<MainAccount> _accounts;
 
-    public AccountHolder()
+    public string Username
     {
-        Accounts = new List<MainAccount>();
-        SecurityQuestions = new Dictionary<string, string>();
+        get { return _username; }
+    }
+
+    public AccountHolder(string username, string pin, Dictionary<string, string> securityQuestions)
+    {
+        _username = username;
+        _pin = pin;
+        _securityQuestions = new Dictionary<string, string>(securityQuestions);
+
+        _accounts = new List<MainAccount>();
+        _accounts.Add(new SavingsAccount());
+        _accounts.Add(new CheckingsAccount());
     }
 
     public bool VerifyPIN(string enteredPIN)
     {
-        return enteredPIN == PIN;
+        return enteredPIN == _pin;
     }
 
-    // this is where i built the logic for the sercurity questions 
     public bool VerifySercuirtyQuestions()
     {
-        Console.WriteLine("\n Answer the sercurity questions:");
-        foreach (var question in SecurityQuestions)
+        Console.WriteLine("Answer your security questions:");
+
+        foreach (KeyValuePair<string, string> question in _securityQuestions)
         {
             Console.WriteLine(question.Key);
             Console.Write("Answer: ");
-            string answer = Console.ReadLine();
-            if (answer.ToLower() != question.Value.ToLower())
+            string answer = (Console.ReadLine() ?? "").Trim();
+
+            if (!string.Equals(answer, question.Value, StringComparison.OrdinalIgnoreCase))
             {
-                Console.WriteLine(" Incorrect");
+                Console.WriteLine("Incorrect answer.");
                 return false;
             }
         }
+
         return true;
+    }
+
+    public void DisplayAccounts()
+    {
+        foreach (MainAccount account in _accounts)
+        {
+            account.DisplayInfo();
+        }
+    }
+
+    public MainAccount GetAccount(int choice)
+    {
+        if (choice == 1)
+        {
+            return _accounts[0];
+        }
+        else if (choice == 2)
+        {
+            return _accounts[1];
+        }
+
+        return null;
     }
 }
 
-class SercuritySoftware
+// Bank
+class Bank
 {
-    static List<AccountHolder> users = new List<AccountHolder>(); // creates memory for all people ho create account
+    private List<AccountHolder> _users;
 
-    static void Main(string[] args)
+    public Bank()
     {
-        Console.WriteLine(" Welcome to Big Money Corperations");
-        while (true) // keeps the menus open
-        {
-            Console.WriteLine("\nMain Menu:");
-            Console.WriteLine("1. Create Account");
-            Console.WriteLine("2. Log In");
-            Console.WriteLine("3. Exit");
-            Console.Write("Choose an option 1,2,3: ");
-            string choice = Console.ReadLine();
-
-            if (choice == "1")
-            {
-                OpenAccount(); // Calling the  method to create an account
-            }
-            else if (choice == "2")
-            {
-                LogIn(); 
-            }
-            else if (choice == "3")
-            {
-                Console.WriteLine("Goodbye");
-                break; 
-            }
-            else
-            {
-                Console.WriteLine("Invalid Please enter 1, 2, or 3.");
-            }
-        }
+        _users = new List<AccountHolder>();
     }
 
-    static void OpenAccount()
+    public bool AddUser(AccountHolder user)
     {
-        Console.WriteLine(" Open your account ");
-        Console.Write("Create a Username: ");
-        string name = Console.ReadLine();
-
-        Console.Write("Set a 4 digit PIN number: ");
-        string pin = Console.ReadLine();
-
-        // Fixed security questions sunday 
-        var securityQA = new Dictionary<string, string>();
-        Console.WriteLine("\nAnswer the following security questions to bypass PIN:");
-        string[] questions = {
-            "What was the name of your high school?",
-            "What city were you born in?",
-            "Who is your favorite Prophet from scriptures?"
-        };
-        foreach (string question in questions)
+        if (FindUser(user.Username) != null)
         {
-            Console.Write($"{question} ");
-            string answer = Console.ReadLine();
-            securityQA[question] = answer;
+            return false;
         }
 
-        // Create the account holder  with savings and checking accounts
-        var user = new AccountHolder
-        {
-            Username = name,
-            PIN = pin,
-            SecurityQuestions = securityQA,
-            Accounts = new List<MainAccount>
-            {
-                new SavingsAccount(),
-                new CheckingsAccount()
-            }
-        };
-
-        users.Add(user);
-        Console.WriteLine(" Account has been created  ");
+        _users.Add(user);
+        return true;
     }
 
-    static void LogIn()
+    public AccountHolder FindUser(string name)
+    {
+        foreach (AccountHolder user in _users)
+        {
+            if (string.Equals(user.Username, name, StringComparison.OrdinalIgnoreCase))
+            {
+                return user;
+            }
+        }
+
+        return null;
+    }
+}
+
+// LoginManager
+class LoginManager
+{
+    private Bank _bank;
+
+    public LoginManager(Bank bank)
+    {
+        _bank = bank;
+    }
+
+    public AccountHolder LogIn()
     {
         Console.WriteLine("Log In");
-        Console.Write(" Enter Username:  ");
-        string name = Console.ReadLine();
+        Console.Write("Enter Username: ");
+        string name = (Console.ReadLine() ?? "").Trim();
 
-        AccountHolder user = users.Find(u => u.Username.Equals(name, StringComparison.OrdinalIgnoreCase));// when putting into ai it changed look up what this line does before submitting  //https://www.youtube.com/watch?v=nFFKfbuOvQw&t=1s  searches for stored username but disregards case sensaticity
+        AccountHolder user = _bank.FindUser(name);
 
         if (user == null)
         {
             Console.WriteLine("User not found.");
-            return;
+            return null;
         }
 
         int attempts = 0;
@@ -204,23 +226,24 @@ class SercuritySoftware
         while (attempts < 3 && !loggedIn)
         {
             Console.Write("Enter your 4-digit PIN: ");
-            string enteredPIN = Console.ReadLine();
+            string enteredPIN = Console.ReadLine() ?? "";
 
             if (user.VerifyPIN(enteredPIN))
             {
-                Console.WriteLine($" Welcome, {user.Username}!");
+                Console.WriteLine($"Welcome, {user.Username}!");
                 loggedIn = true;
             }
             else
             {
                 attempts++;
-                Console.WriteLine($" Incorrect PIN. Attempts left: {3 - attempts}");
+                Console.WriteLine($"Incorrect PIN. Attempts left: {3 - attempts}");
             }
         }
 
         if (!loggedIn)
         {
             Console.WriteLine("Too many failed attempts. Please answer your security questions.");
+
             if (user.VerifySercuirtyQuestions())
             {
                 Console.WriteLine("Security questions verified. Access granted.");
@@ -228,77 +251,220 @@ class SercuritySoftware
             }
             else
             {
-                Console.WriteLine(" Access denied.");
+                Console.WriteLine("Access denied.");
             }
         }
 
         if (loggedIn)
         {
-            UserMenu(user); // Show logged-in menu
+            return user;
+        }
+
+        return null;
+    }
+}
+
+// TransactionManager
+class TransactionManager
+{
+    public void MakeTransaction(AccountHolder user, string type)
+    {
+        Console.WriteLine("Select Account: 1. Savings  2. Checking");
+        string accountChoice = Console.ReadLine() ?? "";
+        MainAccount selectedAccount;
+
+        if (accountChoice == "1")
+        {
+            selectedAccount = user.GetAccount(1);
+        }
+        else if (accountChoice == "2")
+        {
+            selectedAccount = user.GetAccount(2);
+        }
+        else
+        {
+            Console.WriteLine("Invalid account choice.");
+            return;
+        }
+
+        Console.Write($"Enter amount to {type}: ");
+        decimal amount;
+
+        if (!decimal.TryParse(Console.ReadLine(), out amount))
+        {
+            Console.WriteLine("Invalid amount.");
+            return;
+        }
+
+        if (type == "deposit")
+        {
+            selectedAccount.Deposit(amount);
+        }
+        else if (type == "withdraw")
+        {
+            // The actual account type decides which Withdraw method runs.
+            selectedAccount.Withdraw(amount);
+        }
+        else
+        {
+            Console.WriteLine("Invalid transaction type.");
+        }
+    }
+}
+
+// SercuritySoftware
+class SercuritySoftware
+{
+    private static Bank _bank = new Bank();
+    private static LoginManager _loginManager = new LoginManager(_bank);
+    private static TransactionManager _transactionManager = new TransactionManager();
+
+    static void Main(string[] args)
+    {
+        Console.WriteLine("Welcome to Big Money Corperations");
+
+        while (true)
+        {
+            Console.WriteLine();
+            Console.WriteLine("Main Menu:");
+            Console.WriteLine("1. Create Account");
+            Console.WriteLine("2. Log In");
+            Console.WriteLine("3. Exit");
+            Console.Write("Choose an option: ");
+            string choice = Console.ReadLine();
+
+            if (choice == "1")
+            {
+                OpenAccount();
+            }
+            else if (choice == "2")
+            {
+                AccountHolder user = _loginManager.LogIn();
+
+                if (user != null)
+                {
+                    UserMenu(user);
+                }
+            }
+            else if (choice == "3" || choice == null)
+            {
+                Console.WriteLine("Goodbye");
+                break;
+            }
+            else
+            {
+                Console.WriteLine("Invalid choice. Enter 1, 2, or 3.");
+            }
+        }
+    }
+
+    static void OpenAccount()
+    {
+        Console.WriteLine("Open your account ");
+        Console.Write("Create a Username: ");
+        string name = (Console.ReadLine() ?? "").Trim();
+
+        if (name == "")
+        {
+            Console.WriteLine("Username cannot be blank.");
+            return;
+        }
+
+        if (_bank.FindUser(name) != null)
+        {
+            Console.WriteLine("That username is already taken.");
+            return;
+        }
+
+        Console.Write("Set a 4 digit PIN number: ");
+        string pin = Console.ReadLine() ?? "";
+        bool validPIN = pin.Length == 4;
+
+        foreach (char digit in pin)
+        {
+            if (digit < '0' || digit > '9')
+            {
+                validPIN = false;
+            }
+        }
+
+        if (!validPIN)
+        {
+            Console.WriteLine("PIN must contain exactly 4 digits.");
+            return;
+        }
+
+        Dictionary<string, string> securityQA = new Dictionary<string, string>();
+        string[] questions =
+        {
+            "What was the name of your high school?",
+            "What city were you born in?",
+            "Who is your favorite Prophet from scriptures?"
+        };
+
+        Console.WriteLine("Answer the following security questions to bypass PIN:");
+
+        foreach (string question in questions)
+        {
+            Console.WriteLine(question);
+            Console.Write("Answer: ");
+            string answer = (Console.ReadLine() ?? "").Trim();
+
+            if (answer == "")
+            {
+                Console.WriteLine("Security answers cannot be blank.");
+                return;
+            }
+
+            securityQA.Add(question, answer);
+        }
+
+        AccountHolder user = new AccountHolder(name, pin, securityQA);
+
+        if (_bank.AddUser(user))
+        {
+            Console.WriteLine("Account has been created");
+        }
+        else
+        {
+            Console.WriteLine("That username is already taken.");
         }
     }
 
     static void UserMenu(AccountHolder user)
     {
         bool exit = false;
+
         while (!exit)
         {
-            Console.WriteLine("\n--- Account Menu ---");
+            Console.WriteLine();
+            Console.WriteLine("Account Menu:");
             Console.WriteLine("1. View Accounts");
             Console.WriteLine("2. Deposit");
             Console.WriteLine("3. Withdraw");
             Console.WriteLine("4. Logout");
-            Console.Write("Choose an option (1-4): ");
-            string choice = Console.ReadLine();
+            Console.Write("Choose an option: ");
+            string choice = Console.ReadLine() ?? "4";
 
             switch (choice)
             {
                 case "1":
-                    foreach (var account in user.Accounts)
-                    {
-                        account.DisplayInfo();
-                    }
+                    user.DisplayAccounts();
                     break;
                 case "2":
-                    MakeTransaction(user, "deposit");
+                    _transactionManager.MakeTransaction(user, "deposit");
                     break;
                 case "3":
-                    MakeTransaction(user, "withdraw");
+                    _transactionManager.MakeTransaction(user, "withdraw");
                     break;
                 case "4":
-                    Console.WriteLine(" Logging out...");
+                    Console.WriteLine("Logging out...");
                     exit = true;
                     break;
                 default:
                     Console.WriteLine("Invalid choice.");
                     break;
             }
-        }
-    }
-
-    static void MakeTransaction(AccountHolder user, string type)
-    {
-        Console.WriteLine("\nSelect Account: 1. Savings  2. Checking");
-        string accChoice = Console.ReadLine();
-
-        MainAccount selectedAccount = accChoice == "1" ? user.Accounts[0] : user.Accounts[1]; // when editing the program ai changed the if else  this look back at it later before you sumbitt  // https://www.youtube.com/watch?v=dWsjatPhWHQ video for tetrinarary operators 
-
-        Console.Write($"Enter amount to {type}: ");
-        double amount;
-        if (double.TryParse(Console.ReadLine(), out amount))
-        {
-            if (type == "deposit")
-            {
-                selectedAccount.Deposit(amount);
-            }
-            else
-            {
-                selectedAccount.Withdraw(amount);
-            }
-        }
-        else
-        {
-            Console.WriteLine(" Invalid amount.");
         }
     }
 }
